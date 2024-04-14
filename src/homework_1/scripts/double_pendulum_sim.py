@@ -16,8 +16,8 @@ class DoublePendulum():
         self.GRAVITY = 9.81
         self.SIM_TIME = 1500
 
-        self.theta_1 = -np.pi/2
-        self.theta_2 = np.pi
+        self.theta_1 = 0.523599
+        self.theta_2 = - 0.523599
 
         self.angle_1 = []
         self.angle_2 = []
@@ -125,7 +125,7 @@ class DoublePendulum():
         plt.pause(0.0004)
         
 if __name__ == "__main__":
-    lineal = True
+    lineal = False
     pendulum = DoublePendulum()
     if (lineal):
         print("Linear simulation started")
