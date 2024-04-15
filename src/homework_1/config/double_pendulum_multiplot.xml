@@ -127,8 +127,8 @@
                                 </y_axis>
                             </axes>
                             <color>
-                                <custom_color>#000000</custom_color>
-                                <type>0</type>
+                                <custom_color>#222E50</custom_color>
+                                <type>1</type>
                             </color>
                             <data>
                                 <circular_buffer_capacity>1000</circular_buffer_capacity>
@@ -178,8 +178,8 @@
                                 </y_axis>
                             </axes>
                             <color>
-                                <custom_color>#000000</custom_color>
-                                <type>0</type>
+                                <custom_color>#007991</custom_color>
+                                <type>1</type>
                             </color>
                             <data>
                                 <circular_buffer_capacity>1000</circular_buffer_capacity>

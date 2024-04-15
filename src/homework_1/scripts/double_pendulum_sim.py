@@ -16,8 +16,8 @@ class DoublePendulum():
         self.GRAVITY = 9.81
         self.SIM_TIME = 1500
 
-        self.theta_1 = -np.pi/2
-        self.theta_2 = -3*np.pi/2
+        self.theta_1 = 0.59
+        self.theta_2 = 0.59
 
         self.angle_1 = []
         self.angle_2 = []

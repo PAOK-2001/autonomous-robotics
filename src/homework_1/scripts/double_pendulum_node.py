@@ -122,10 +122,10 @@ class DoublePendulum():
             prev_time = time.time()
 
             # Publish messages
-            theta1_msg = Float32
+            theta1_msg = Float32()
             theta1_msg.data = self.theta_1
 
-            theta2_msg = Float32
+            theta2_msg = Float32()
             theta2_msg.data = self.theta_2
             
             x1_msg = Float32()
@@ -153,7 +153,8 @@ class DoublePendulum():
             self.y2_pub.publish(y2_msg)
             
             self.theta1_pub.publish(theta1_msg)
-            self.theta2_pub.publish(theta2_msg)    
+            self.theta2_pub.publish(theta2_msg)
+            self.rate.sleep()     
 
     def linear_sim_RK(self):
         # Define coefficients
@@ -188,10 +189,10 @@ class DoublePendulum():
             prev_time = time.time()
             
             # Publish messages
-            theta1_msg = Float32
+            theta1_msg = Float32()
             theta1_msg.data = self.theta_1
 
-            theta2_msg = Float32
+            theta2_msg = Float32()
             theta2_msg.data = self.theta_2
             
             x1_msg = Float32()
@@ -219,7 +220,8 @@ class DoublePendulum():
             self.y2_pub.publish(y2_msg)
             
             self.theta1_pub.publish(theta1_msg)
-            self.theta2_pub.publish(theta2_msg)   
+            self.theta2_pub.publish(theta2_msg)
+            self.rate.sleep()    
     
     def compute_dot_X3(self, X1, X2, X3, X4):
         numerator = math.cos(X1 - X2) * ((self.GRAVITY / self.LENGTH_1) * math.sin(X2) - X3**2 * math.sin(X1 - X2)) - (self.LENGTH_2 / self.LENGTH_1) * ((self.M + 1) * (self.GRAVITY / self.LENGTH_2) * math.sin(X1) + X4**2 * math.sin(X1 - X2))
@@ -234,11 +236,15 @@ class DoublePendulum():
         return dot_X4
         
 if __name__ == "__main__":
-    lineal = False
+    lineal = True
+    method = 'rk'
     pendulum = DoublePendulum()
     if (lineal):
         print("Linear simulation started")
-        pendulum.linear_sim()
+        if method == 'rk':
+            pendulum.linear_sim_RK()
+        else:
+            pendulum.linear_sim()
     else:
         print("Non linear simulation started")
         pendulum.nonlinear_sim()        
