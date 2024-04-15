@@ -1,13 +1,12 @@
 import cv2
 import math
 import time
+import atexit
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox
 from matplotlib.offsetbox import OffsetImage
 from scipy import ndimage
-
-
 
 def plot_agent(asset, heading, zoom = 0.015):
     img = ndimage.rotate(asset, heading) 
@@ -15,33 +14,20 @@ def plot_agent(asset, heading, zoom = 0.015):
     img = OffsetImage(img, zoom=zoom)
     return img
 
-
 class Rover:
     def __init__(self):
         plt.ion()
         #Turtle bot waffle pi
-
-        self.MASS = 1.8 # kg
         self.WHEEL_RADIUS = 0.066 # meters
         self.WHEEL_BASE   = 0.16
-        self.INTERIA = 1 /2 * self.MASS * (self.WHEEL_BASE/2) **2
-
-        self.right_torque = 0.1
-        self.left_torque  = 0.15
-
-        self.right_force = self.right_torque / self.WHEEL_RADIUS
-        self.left_force = self.left_torque / self.WHEEL_RADIUS
-
-        self.force = self.right_force + self.left_force
-        self.velocity = 0
 
         self.x = 0
         self.y = 0
-        self.theta = 0
-
+        self.theta = np.pi/4
+        self.velocity = 0
+ 
         self.pos_x1 = []
         self.pos_y1 = []
-
             
         _, self.sim_plot = plt.subplots(1, figsize = (5,5))
 
@@ -51,41 +37,65 @@ class Rover:
         dot_X1 = 0
         dot_X3 = 0
         
-        elapsed_time = 0
         while (True):
-            if(elapsed_time > 1):
-                self.right_torque = 0 
-                self.left_torque = 0
-
-            self.right_force = self.right_torque / self.WHEEL_RADIUS
-            self.left_force = self.left_torque / self.WHEEL_RADIUS
-
-            self.force = self.right_force + self.left_force
-
-            dt = time.time() - prev_time
-            dot_X4 = self.force/self.MASS * np.cos(self.theta) - self.velocity * np.sin(self.theta)*dot_X3
-            dot_X5 = self.force/self.MASS * np.sin(self.theta) - self.velocity * np.cos(self.theta)*dot_X3
-            dot_X6 = (self.right_force*self.WHEEL_BASE/2 - self.left_force*self.WHEEL_BASE/2)/self.INTERIA
-            print(dot_X6)
+            left_velocity = 0.5
+            right_velocity = 0.4
             
-            dot_X3 += dot_X6 * dt  
-            dot_X2 += dot_X5 * dt
-            dot_X1 += dot_X4 * dt
-            self.velocity = math.sqrt(dot_X2**2 + dot_X1**2)
+            self.velocity = (right_velocity + left_velocity)/2
+            
+            dt = time.time() - prev_time
 
-            self.x += dot_X1 * dt
-            self.y += dot_X2 * dt
+            dot_X1 = self.velocity*np.cos(self.theta)
+            dot_X2 = self.velocity*np.sin(self.theta)
+            dot_X3 = (right_velocity - left_velocity) / self.WHEEL_BASE
+
+            self.x += dot_X1 *dt
+            self.y += dot_X2 *dt
             self.theta += dot_X3 *dt
+
+            if(self.theta < 0): self.theta = self.theta + 2*np.pi
 
             self.pos_x1.append(self.x)
             self.pos_y1.append(self.y)
 
             prev_time = time.time()
-            elapsed_time+= dt
             self.visualize_rover()
            
     def linear_sim(self):
-        raise NotImplemented
+        prev_time = time.time()
+  
+        mat_A = np.zeros([3,3])
+
+        # Since all points for a rover are stable, we evaluate the input matrix for our intial conditions
+        mat_B = np.mat([[np.cos(self.theta),0],
+                        [np.sin(self.theta),0],
+                        [0,1]])
+        while (True):
+            dt = time.time() - prev_time
+            left_velocity = 0.5
+            right_velocity = 0.5
+            velocity = (right_velocity + left_velocity)/2
+            angular_speed = (right_velocity - left_velocity) / self.WHEEL_BASE
+            
+            states = np.mat([self.x, self.y, self.theta]).T
+            inputs = np.mat([velocity , angular_speed]).T
+
+            dot_states = mat_A * states + mat_B*inputs
+            states = states + dot_states * dt
+
+
+            self.x = states[0,0]
+            self.y = states[1,0]
+            self.theta = states[2,0]
+
+            # breakpoint()
+            if(self.theta < 0): self.theta = self.theta + 2*np.pi
+
+            self.pos_x1.append(self.x)
+            self.pos_y1.append(self.y)
+
+            prev_time = time.time()
+            self.visualize_rover()
 
     def visualize_rover(self):
         self.sim_plot.clear()
@@ -95,11 +105,12 @@ class Rover:
 
         self.sim_plot.set_xlim(-10,10)
         self.sim_plot.set_ylim(-10,10)
+        plt.grid()
 
         plt.pause(0.0004)        
         
 if __name__ == "__main__":
-    lineal = False
+    lineal = True
     rover = Rover()
     if (lineal):
         print("Linear simulation started")
