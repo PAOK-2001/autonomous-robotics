@@ -166,6 +166,7 @@ include_directories(
 
 catkin_install_python(PROGRAMS
   scripts/double_pendulum_node.py
+  scripts/rover_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

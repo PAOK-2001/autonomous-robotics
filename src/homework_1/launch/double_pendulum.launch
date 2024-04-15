@@ -2,7 +2,6 @@
 <launch>
 
     <node name="double_pendulum" pkg="homework_1" type="double_pendulum_node.py" output="screen"/>
-    <!-- <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" args="/theta1 /theta2" output="screen"/> -->
     <node pkg="rqt_multiplot" type="rqt_multiplot" name="multiplot" output="screen" >
         <rosparam command="load" file="$(find homework_1)/config/double_pendulum_multiplot.xml" param="Configuration"/>
     </node>        
