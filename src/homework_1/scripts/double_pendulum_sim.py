@@ -9,7 +9,7 @@ class DoublePendulum():
         plt.ion()
         # Constant
         self.MASS_1 = 1.0 # kilograms
-        self.MASS_2 = 1.0
+        self.MASS_2 = 0.5
         self.M = self.MASS_1/self.MASS_2
         self.LENGTH_1 = 1.0 # meters
         self.LENGTH_2 = 1.0
@@ -31,9 +31,7 @@ class DoublePendulum():
         self.angular_speed_1 = []
         self.angular_speed_2 = []
 
-
-        _, self.sim_plot = plt.subplots(1, figsize = (5,5))
-        # _, self.speed_plot = plt.subplots(1, figsize = (5,5))
+        _, self.sim_plot   = plt.subplots(1, figsize = (5,5))
 
     def nonlinear_sim(self):
         X3 = 0
@@ -56,7 +54,7 @@ class DoublePendulum():
 
             prev_time = time.time()
 
-            self.visualize_pendulum()
+            self.visualize_pendulum(variable_to_show = "angle")
             
     def linear_sim(self):
         coeff_mat = np.mat([[0,0,1,0],
@@ -65,15 +63,15 @@ class DoublePendulum():
                             [self.GRAVITY*(self.MASS_1 + self.MASS_2)/(self.LENGTH_2*self.MASS_1),-self.GRAVITY*(self.MASS_1 + self.MASS_2)/(self.LENGTH_2*self.MASS_1),0,0]])
     
     
-        states = np.array([self.theta_1, self.theta_2, 0, 0]).T
+        states = np.mat([self.theta_1, self.theta_2, 0, 0]).T
         prev_time = time.time()
         while(True):
             dt = time.time() - prev_time
-            dot_states = states*coeff_mat
+            dot_states = coeff_mat*states
             states = states + dot_states * dt
 
             self.theta_1 = states[0,0]
-            self.theta_2 = states[0,1]
+            self.theta_2 = states[1,0]
 
             self.angle_1.append(self.theta_1)
             self.angle_2.append(self.theta_2)
@@ -114,44 +112,54 @@ class DoublePendulum():
             self.visualize_pendulum()
     
     def compute_dot_X3(self, X1, X2, X3, X4):
-        numerator = math.cos(X1 - X2) * ((self.GRAVITY / self.LENGTH_1) * math.sin(X2) - X3**2 * math.sin(X1 - X2)) - (self.LENGTH_2 / self.LENGTH_1) * ((self.M + 1) * (self.GRAVITY / self.LENGTH_2) * math.sin(X1) + X4**2 * math.sin(X1 - X2))
-        denominator = self.M + math.sin(X1 - X2)**2
+        numerator = -self.GRAVITY * (2 * self.MASS_1 + self.MASS_2) * math.sin(X1) - self.MASS_2 * self.GRAVITY * math.sin(X1 - 2 * X2) - 2 * math.sin(X1 - X2) * self.MASS_2 * (X4 ** 2 * self.LENGTH_2 + X3 ** 2 * self.LENGTH_1 * math.cos(X1 - X2))
+        denominator = self.LENGTH_1 * (2 * self.MASS_1 + self.MASS_2 - self.MASS_2 * math.cos(2 * X1 - 2 * X2))
         dot_X3 = numerator / denominator
         return dot_X3
 
     def compute_dot_X4(self, X1, X2, X3, X4):
-        numerator = math.cos(X1 - X2) * ((self.M + 1) * (self.GRAVITY / self.LENGTH_2) * math.sin(X1) + X4**2 * math.sin(X1 - X2)) - (self.M + 1) * (self.LENGTH_1 / self.LENGTH_2) * ((self.GRAVITY / self.LENGTH_1) * math.sin(X2) - X3**2 * math.sin(X1 - X2))
-        denominator = self.M + math.sin(X1 - X2)**2
+        numerator = 2 * math.sin(X1 - X2) * ((X3 ** 2) * self.LENGTH_1 * (self.MASS_1 + self.MASS_2) + self.GRAVITY * (self.MASS_1 + self.MASS_2) * math.cos(X1) + (X4 ** 2) * self.LENGTH_2 * self.MASS_2 * math.cos(X1 - X2))
+        denominator = self.LENGTH_2 * (2 * self.MASS_1 + self.MASS_2 - self.MASS_2 * math.cos(2 * X1 - 2 * X2))
         dot_X4 = numerator / denominator
         return dot_X4
 
-    def visualize_pendulum(self):
-       
-        self.sim_plot.clear()
+    def visualize_pendulum(self, variable_to_show = 'position'):
+        if variable_to_show == 'position':
         
-        x1 = self.LENGTH_1 * np.sin(self.theta_1) 
-        y1 = -1 * self.LENGTH_1 * np.cos(self.theta_1) 
+            self.sim_plot.clear()
+            
+            x1 = self.LENGTH_1 * np.sin(self.theta_1) 
+            y1 = -1 * self.LENGTH_1 * np.cos(self.theta_1) 
 
-        x2 = x1 + self.LENGTH_2*np.sin(self.theta_2)
-        y2 = y1 - self.LENGTH_2*np.cos(self.theta_2)
+            x2 = x1 + self.LENGTH_2*np.sin(self.theta_2)
+            y2 = y1 - self.LENGTH_2*np.cos(self.theta_2)
 
-        self.pos_x1.append(x1)
-        self.pos_x2.append(x2)
+            self.pos_x1.append(x1)
+            self.pos_x2.append(x2)
 
-        self.pos_y1.append(y1)
-        self.pos_y2.append(y2)
+            self.pos_y1.append(y1)
+            self.pos_y2.append(y2)
 
-        self.sim_plot.plot([0, x1], [0, y1], lw=2, c='k')
-        self.sim_plot.plot([x1, x2], [y1, y2], lw=2, c='k')
+            self.sim_plot.plot([0, x1], [0, y1], lw=2, c='k')
+            self.sim_plot.plot([x1, x2], [y1, y2], lw=2, c='k')
 
-        # Plot the bobs
-        max_l = self.LENGTH_1 + self.LENGTH_2
-        self.sim_plot.plot(x1, y1, 'bo', markersize=10, c= 'r')
-        self.sim_plot.plot(self.pos_x1, self.pos_y1, c='r')
-        self.sim_plot.plot(x2, y2, 'ro', markersize=10, c = 'b')
-        self.sim_plot.plot(self.pos_x2, self.pos_y2, c='b')
-        self.sim_plot.set_xlim(-max_l-0.5,max_l + 0.5)
-        self.sim_plot.set_ylim(-max_l-0.5,max_l + 0.5)
+            # Plot the bobs
+            max_l = self.LENGTH_1 + self.LENGTH_2
+            self.sim_plot.plot(x1, y1, 'bo', markersize=10, c= '#222E50')
+            self.sim_plot.plot(self.pos_x1, self.pos_y1, c='#BCD8C1', alpha = 0.7)
+            self.sim_plot.plot(x2, y2, 'ro', markersize=10, c = '#007991')
+            self.sim_plot.plot(self.pos_x2, self.pos_y2, c='#439a86')
+            self.sim_plot.set_xlim(-max_l-0.5,max_l + 0.5)
+            self.sim_plot.set_ylim(-max_l-0.5,max_l + 0.5)
+        
+        else:
+            self.sim_plot.plot(self.angle_1, self.angle_2, lw=2, c='#007991')
+            self.sim_plot.set_title('Theta1 vs theta2')
+            self.sim_plot.set_xlabel('Theta 1 (radians)')
+            self.sim_plot.set_ylabel('Theta 2 (Radians)')
+    
+
+
 
         plt.pause(0.0004)
         
