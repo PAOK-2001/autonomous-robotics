@@ -1,8 +1,8 @@
+
 import math
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 class DoublePendulum():
     def __init__(self):
@@ -16,8 +16,8 @@ class DoublePendulum():
         self.GRAVITY = 9.81
         self.SIM_TIME = 1500
 
-        self.theta_1 = 0.523599
-        self.theta_2 = - 0.523599
+        self.theta_1 = -np.pi/2
+        self.theta_2 = -3*np.pi/2
 
         self.angle_1 = []
         self.angle_2 = []
@@ -40,7 +40,7 @@ class DoublePendulum():
         X4 = 0
         prev_time = time.time()
         while (True):
-            dt =time.time() - prev_time
+            dt = time.time() - prev_time
             X3_dot = self.compute_dot_X3(self.theta_1, self.theta_2, X3, X4)
             X4_dot = self.compute_dot_X4(self.theta_1, self.theta_2, X3, X4)
             X4 += X4_dot * dt
@@ -61,8 +61,8 @@ class DoublePendulum():
     def linear_sim(self):
         coeff_mat = np.mat([[0,0,1,0],
                             [0,0,0,1],
-                            [(-self.GRAVITY * (self.MASS_1+self.MASS_2))/(self.LENGTH_1 * self.MASS_1),(-self.GRAVITY * self.MASS_2)/(self.LENGTH_1 * self.MASS_1),0,0],
-                            [(self.GRAVITY * (self.MASS_1+self.MASS_2))/(self.LENGTH_1 * self.MASS_1),(-self.GRAVITY * ((self.MASS_1+self.MASS_2)))/(self.LENGTH_1 * self.MASS_1),0,0]])
+                            [(-self.GRAVITY*self.MASS_2 - self.GRAVITY*(2*self.MASS_1 + self.MASS_2))/(2*self.LENGTH_1*self.MASS_1),self.GRAVITY*self.MASS_2/(self.LENGTH_1*self.MASS_1)/(self.LENGTH_1 * self.MASS_1),0,0],
+                            [self.GRAVITY*(self.MASS_1 + self.MASS_2)/(self.LENGTH_2*self.MASS_1),-self.GRAVITY*(self.MASS_1 + self.MASS_2)/(self.LENGTH_2*self.MASS_1),0,0]])
     
     
         states = np.array([self.theta_1, self.theta_2, 0, 0]).T
@@ -80,7 +80,38 @@ class DoublePendulum():
             prev_time = time.time()
             self.visualize_pendulum()
             
+    def linear_sim_RK(self):
+        # Define coefficients
+        coeff_mat = np.mat([[0, 0, 1, 0],
+                            [0, 0, 0, 1],
+                            [(-self.GRAVITY*self.MASS_2 - self.GRAVITY*(2*self.MASS_1 + self.MASS_2))/(2*self.LENGTH_1*self.MASS_1),
+                             self.GRAVITY*self.MASS_2/(self.LENGTH_1*self.MASS_1)/(self.LENGTH_1 * self.MASS_1), 0, 0],
+                            [self.GRAVITY*(self.MASS_1 + self.MASS_2)/(self.LENGTH_2*self.MASS_1),
+                             -self.GRAVITY*(self.MASS_1 + self.MASS_2)/(self.LENGTH_2*self.MASS_1), 0, 0]])
 
+        # Initialize states
+        states = np.array([[self.theta_1, self.theta_2, 0, 0]])
+
+        prev_time = time.time()
+        while True:
+            dt = time.time() - prev_time
+
+            # Runge-Kutta integration
+            k1 = np.dot(states, coeff_mat)
+            k2 = np.dot(states + 0.5*dt*k1, coeff_mat)
+            k3 = np.dot(states + 0.5*dt*k2, coeff_mat)
+            k4 = np.dot(states + dt*k3, coeff_mat)
+
+            states += (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
+
+            self.theta_1 = states[0, 0]
+            self.theta_2 = states[0, 1]
+
+            self.angle_1.append(self.theta_1)
+            self.angle_2.append(self.theta_2)
+
+            prev_time = time.time()
+            self.visualize_pendulum()
     
     def compute_dot_X3(self, X1, X2, X3, X4):
         numerator = math.cos(X1 - X2) * ((self.GRAVITY / self.LENGTH_1) * math.sin(X2) - X3**2 * math.sin(X1 - X2)) - (self.LENGTH_2 / self.LENGTH_1) * ((self.M + 1) * (self.GRAVITY / self.LENGTH_2) * math.sin(X1) + X4**2 * math.sin(X1 - X2))
@@ -125,12 +156,15 @@ class DoublePendulum():
         plt.pause(0.0004)
         
 if __name__ == "__main__":
-    lineal = False
+    lineal = True
+    method = 'rk'
     pendulum = DoublePendulum()
     if (lineal):
         print("Linear simulation started")
-        pendulum.linear_sim()
+        if method == 'rk':
+            pendulum.linear_sim_RK()
+        else:
+            pendulum.linear_sim()
     else:
         print("Non linear simulation started")
         pendulum.nonlinear_sim()        
-        
