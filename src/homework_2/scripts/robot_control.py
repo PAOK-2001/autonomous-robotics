@@ -21,7 +21,7 @@ class Rover():
         self.theta_dot = 0
 
         self.desired_state_dot = np.mat([[0, 0]]).T
-        self.desired_state = np.mat([[7, 5]]).T # location from origin in meters as reference (x,y)
+        self.desired_state = np.mat([[-6, -8]]).T # location from origin in meters as reference (x,y)
 
         self.phi_mat = np.mat([[self.r/self.d, -self.r/self.d]])
 
@@ -41,15 +41,14 @@ class Rover():
         prev_time = time.time()
         print("Simulating by Newton-Euler")
         while(True):
-            dt = 0.001
+            dt = time.time()-prev_time
             D_mat = self.get_angle_matrix()
             D_mat_inverse = (1/(D_mat[0,0]*D_mat[1,1]-D_mat[1,0]*D_mat[0,1]))*np.mat([[D_mat[1,1],-D_mat[0,1]],
-                                                         [-D_mat[1,0],D_mat[0,0]]])
-            error = self.desired_state - self.q
-            print(D_mat@D_mat_inverse)
+                                                                                      [-D_mat[1,0],D_mat[0,0]]])
+            error = (self.desired_state - self.q)
             control_out = D_mat_inverse*(self.desired_state_dot + k_mat*error)
             self.control.append((control_out[0,0]+control_out[1,0])/2)
-            self.q_dot = self.get_angle_matrix() * control_out
+            self.q_dot = D_mat * control_out
             self.theta_dot = self.phi_mat*control_out
             self.q = self.q + self.q_dot * dt
             self.theta = self.theta + self.theta_dot[0,0] * dt
@@ -60,8 +59,8 @@ class Rover():
             
     def get_angle_matrix(self):
         #print("Theta ", self.theta)
-        return np.mat([[self.r/2*np.cos(self.theta)-self.h*self.r/self.d*np.sin(self.theta), self.r/2*np.cos(self.theta)+self.h*self.r/self.d*np.sin(self.theta)],
-                      [self.r/2*np.sin(self.theta)-self.h*self.r/self.d*np.cos(self.theta), self.r/2*np.sin(self.theta)+self.h*self.r/self.d*np.cos(self.theta)]])
+        return np.mat([[(self.r/2)*np.cos(self.theta)-((self.h*self.r)/self.d)*np.sin(self.theta), (self.r/2)*np.cos(self.theta)+((self.h*self.r)/self.d)*np.sin(self.theta)],
+                       [(self.r/2)*np.sin(self.theta)+((self.h*self.r)/self.d)*np.cos(self.theta), (self.r/2)*np.sin(self.theta)-((self.h*self.r)/self.d)*np.cos(self.theta)]])
         
 
 
