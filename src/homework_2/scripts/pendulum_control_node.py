@@ -1,15 +1,25 @@
 import time
 import matplotlib
-
 import math
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+import rospy
+from std_msgs.msg import Float32
 
 class Pendulum():
     def __init__(self):
         plt.ion()
+
+        rospy.init_node("pendulum_model")
+        self.rate = rospy.Rate(100)
+        self.theta_pub = rospy.Publisher('/theta', Float32, queue_size = 10)
+        self.x_pub = rospy.Publisher('/x', Float32, queue_size = 10)
+        self.y_pub = rospy.Publisher('/y', Float32, queue_size = 10)
+        self.error_pub = rospy.Publisher('/error', Float32, queue_size = 10)
+        self.ref_pub = rospy.Publisher('/ref', Float32, queue_size = 10)
+
         # Constant
         self.LENGTH = 1.0 # meters
         self.MASS = 1.0 # kilograms
@@ -37,7 +47,6 @@ class Pendulum():
                 dt = time.time() - prev_time
                 error = states - self.desired_state
                 dot_states = input_mat*self.control_mat*states
-                print(error[0,0])
 
                 k1 = coeff_mat * states + dot_states
                 k2 = coeff_mat * (states + k1 * dt / 2) + dot_states
@@ -48,8 +57,9 @@ class Pendulum():
 
                 self.theta = states[0, 0]
 
+                self.publish_states(error=error[0,0])
                 prev_time = time.time()
-                self.visualize_pendulum()
+                self.rate.sleep()
 
         else:
             print("Simulating by Newton-Euler")
@@ -57,28 +67,36 @@ class Pendulum():
                 dt = time.time() - prev_time
                 error = states - self.desired_state
                 print(error[0,0])
-                dot_states = coeff_mat*states + input_mat*self.control_mat*error
+                dot_states = coeff_mat*states + input_mat*self.control_mat*states
                 states = states + dot_states *dt
 
                 self.theta = states[0,0]
 
+                self.publish_states(error=error[0,0])
                 prev_time = time.time()
-                self.visualize_pendulum()
                 
             
 
-    def visualize_pendulum(self, variable_to_show = 'position'):
-        
-            self.sim_plot.clear()
-            
-            x1 = self.LENGTH * np.sin(self.theta) 
-            y1 = -1 * self.LENGTH * np.cos(self.theta)
-            self.sim_plot.plot([0, x1], [0, y1], lw=2, c='k') 
-            self.sim_plot.plot(x1, y1, 'bo', markersize=10, c= '#222E50')   
-            self.sim_plot.set_xlim(-self.LENGTH-0.5,self.LENGTH + 0.5)
-            self.sim_plot.set_ylim(-self.LENGTH-0.5,self.LENGTH + 0.5)
+    def publish_states(self, error):
+        x_msg, y_msg, theta_msg, error_msg, ref_msg = (Float32(), Float32(), Float32(), Float32(), Float32())
 
-            plt.pause(0.0004)
+        theta_msg.data = self.theta
+        x_msg.data = self.LENGTH * np.sin(self.theta) 
+        y_msg.data = -1 * self.LENGTH * np.cos(self.theta)
+
+        error_msg.data = error
+        ref_msg.data = self.desired_state[0,0]
+        
+        self.error_pub.publish(error_msg)
+        self.ref_pub.publish(ref_msg)
+
+        self.theta_pub.publish(theta_msg)
+        self.x_pub.publish(x_msg)
+        self.y_pub.publish(y_msg)
+
+
+
+       
         
 if __name__ == "__main__":
     pendulum = Pendulum()

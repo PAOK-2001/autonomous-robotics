@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node name="pendulum_sim" pkg="homework_2" type="pendulum_control_node.py" output="screen"/>
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" respawn="false" output="screen" args="/error /ref /theta" />
+
+    <node pkg="rqt_multiplot" type="rqt_multiplot" name="multiplot" output="screen" >
+        <rosparam command="load" file="$(find homework_2)/config/pendulum_multiplot.xml" param="Configuration"/>
+    </node>        
+
+</launch>
