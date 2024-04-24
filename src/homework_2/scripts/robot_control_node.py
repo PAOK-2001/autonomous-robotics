@@ -12,7 +12,7 @@ class RoverControl():
         # Node Params
         rospy.init_node('robot_control_node')
 
-        self.rate = rospy.Rate(100)
+        self.rate = rospy.Rate(1000)
         self.x_pub = rospy.Publisher('/x', Float32, queue_size=10)
         self.y_pub = rospy.Publisher('/y', Float32, queue_size=10)
         self.theta_pub = rospy.Publisher('/theta', Float32, queue_size=10)
@@ -30,7 +30,7 @@ class RoverControl():
         self.theta_dot = 0
 
         self.desired_state_dot = np.mat([[0, 0]]).T
-        self.desired_state = np.mat([[7, 5]]).T # location from origin in meters as reference (x,y)
+        self.desired_state = np.mat([[0, 8]]).T # location from origin in meters as reference (x,y)
 
         self.phi_mat = np.mat([[self.r/self.d, -self.r/self.d]])
 
@@ -42,6 +42,7 @@ class RoverControl():
         _, self.sim_plot   = plt.subplots(1, figsize = (5,5))
         _, self.angle_plot = plt.subplots(1, figsize = (5,5))
         _, self.control_plot = plt.subplots(1, figsize = (5,5))
+        time.sleep(2)
 
             
     def linear_sim(self):
@@ -90,6 +91,7 @@ class RoverControl():
         self.x_pub.publish(x_msg)
         self.y_pub.publish(y_msg)
         self.theta_pub.publish(theta_msg)
+        
         self.error_pos_pub.publish(linear_error)
         self.error_theta_pub.publish(angular_error)
         

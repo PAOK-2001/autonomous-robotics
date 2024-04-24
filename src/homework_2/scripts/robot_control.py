@@ -21,7 +21,7 @@ class Rover():
         self.theta_dot = 0
 
         self.desired_state_dot = np.mat([[0, 0]]).T
-        self.desired_state = np.mat([[-6, -8]]).T # location from origin in meters as reference (x,y)
+        self.desired_state = np.mat([[7, 8]]).T # location from origin in meters as reference (x,y)
 
         self.phi_mat = np.mat([[self.r/self.d, -self.r/self.d]])
 
@@ -53,7 +53,7 @@ class Rover():
             self.q = self.q + self.q_dot * dt
             self.theta = self.theta + self.theta_dot[0,0] * dt
             self.angles.append(self.theta)
-            # prev_time = time.time()
+            prev_time = time.time()
             self.visualize_position()
                 
             
