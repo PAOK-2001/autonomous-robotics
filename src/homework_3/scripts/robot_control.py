@@ -14,7 +14,7 @@ class Rover():
         self.r = 0.04 # Wheel radius
         self.h = 0.15 # distance to turning point from wheels
         self.d = 0.10 # wheelbase
-        self.mu, self.sigma = 0, 0.01 
+        self.mu, self.sigma = 0, 0.1 
 
         self.q_dot = np.mat([[0,0]]).T
         self.theta_dot = 0
