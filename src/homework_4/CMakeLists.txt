@@ -125,6 +125,12 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/homework_4.cpp
 # )
+catkin_install_python(PROGRAMS
+  scripts/system_node.py
+  scripts/controller_node.py
+  scripts/filter_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
