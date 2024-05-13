@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-    <node name="sim_node" pkg="homework_4" type="controller_node.py" output="screen"/>
-    <node name="controller" pkg="homework_4" type="system_node.py" output="screen"/>
+    <node name="controller" pkg="homework_4" type="controller_node.py" output="screen"/>
+    <node name="sim_node" pkg="homework_4" type="system_node.py" output="screen"/>
     <node name="filter" pkg="homework_4" type="filter_node.py" output="screen"/>
 
     <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" respawn="false" output="screen" args="/pose/position/x /filtered_pose/position/x"/>
